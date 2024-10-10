@@ -1,8 +1,7 @@
 import feedparser
 import asyncio
-import re  # Import the regular expression module
+import re
 from telegram import Bot
-from time import sleep
 
 # Initialize your Telegram bot with the token
 bot_token = "7840950619:AAEjNXunlZ8FzMp98nNRJqwBlsLzCD-Gk6I"  # Your bot token
@@ -110,19 +109,8 @@ rss_feeds = [
 # Function to send a message to the Telegram channel
 async def send_message(title, summary, link):
     clean_summary = re.sub(r'<[^>]+>', '', summary)  # Remove HTML tags
-    clean_summary = clean_summary[:400]  # Limit summary length to 400 characters
     message = f"<b>{title.upper()}</b>\n\n{clean_summary}\n\n<a href='{link}'>CLICK HERE FOR MORE ABOUT THIS STORY</a>"
-    
-    try:
-        await bot.send_message(channel_id, message, parse_mode="HTML")
-    except Exception as e:
-        print(f"An error occurred while sending message: {e}")
-        # If the error is due to flood control, wait and retry
-        if "Flood control exceeded" in str(e):
-            sleep_time = 40  # Wait for a longer period
-            print(f"Retrying after {sleep_time} seconds...")
-            await asyncio.sleep(sleep_time)  # Use asyncio.sleep for non-blocking delay
-            await send_message(title, summary, link)  # Retry sending the message
+    await bot.send_message(channel_id, message, parse_mode="HTML")
 
 # Main function to fetch RSS feeds and send messages
 async def fetch_and_send():
@@ -134,12 +122,15 @@ async def fetch_and_send():
                 summary = entry.summary if hasattr(entry, 'summary') else "No summary available."
                 link = entry.link
                 await send_message(title, summary, link)
-                await asyncio.sleep(5)  # Wait 5 seconds between each message to reduce the chance of flooding
             await asyncio.sleep(2)  # Sleep between requests to avoid hitting rate limits
         except Exception as e:
-            print(f"An error occurred while fetching feed: {e}")
+            print(f"An error occurred: {e}")
 
-# Run the fetch and send function in an event loop
+# Vercel handler function
+def handler(request):
+    asyncio.run(fetch_and_send())
+    return "Messages sent!", 200
+
 if __name__ == "__main__":
     try:
         loop = asyncio.get_running_loop()
