@@ -1,12 +1,12 @@
 import feedparser
 import asyncio
 import re  # Import the regular expression module
-import os  # Import the os module to access environment variables
 from telegram import Bot
 from time import sleep
+from flask import Flask, request  # Import Flask for handling requests
 
-# Initialize your Telegram bot with the token from environment variable
-bot_token = os.getenv("BOT_TOKEN")  # Your bot token
+# Initialize your Telegram bot with the token
+bot_token = "7840950619:AAEjNXunlZ8FzMp98nNRJqwBlsLzCD-Gk6I"  # Your bot token
 bot = Bot(token=bot_token)
 
 # Your Telegram channel ID (for posting)
@@ -140,12 +140,13 @@ async def fetch_and_send():
         except Exception as e:
             print(f"An error occurred while fetching feed: {e}")
 
-# Run the fetch and send function in an event loop
-if __name__ == "__main__":
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:  # If there's no running loop, create a new one
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+# Flask app for Vercel
+app = Flask(__name__)
 
-    loop.run_until_complete(fetch_and_send())
+@app.route("/", methods=["GET"])
+async def index():
+    await fetch_and_send()
+    return "Messages sent to Telegram channel."
+
+if __name__ == "__main__":
+    app.run(debug=True)
