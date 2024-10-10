@@ -1,1 +1,2 @@
-python-telegram-bot==20.0
+python-telegram-bot==20.0  # Use the appropriate version you are working with
+feedparser==6.0.8           # Use the version that fits your needspython-telegram-bot==20.0
